@@ -1,54 +1,33 @@
-os.environ["OMP_NUM_THREADS"] = "1"
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["OMP_NUM_THREADS"] = "1"
 
 from flask import Flask, render_template, request, send_from_directory
 from PIL import Image
+import gc
 
 app = Flask(__name__)
 
 classifier = None
 
-# Upload folder
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Food information
 food_info = {
     "pizza": {
         "calories": "266 kcal",
         "type": "Italian"
     },
-
     "burger": {
         "calories": "295 kcal",
         "type": "Fast Food"
-    },
-
-    "samosa": {
-        "calories": "262 kcal",
-        "type": "Indian Snack"
-    },
-
-    "chicken_curry": {
-        "calories": "243 kcal",
-        "type": "Indian"
-    },
-
-    "garlic_bread": {
-        "calories": "350 kcal",
-        "type": "Italian"
     }
 }
 
-# Prediction history
 history = []
 
-# Serve uploaded images
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(
@@ -56,7 +35,6 @@ def uploaded_file(filename):
         filename
     )
 
-# Main route
 @app.route("/", methods=["GET", "POST"])
 def home():
 
@@ -68,7 +46,6 @@ def home():
 
         file = request.files["image"]
 
-        # Save image
         filepath = os.path.join(
             app.config["UPLOAD_FOLDER"],
             file.filename
@@ -76,27 +53,26 @@ def home():
 
         file.save(filepath)
 
-        # Open image
         image = Image.open(filepath)
 
-        # Lazy load model
         global classifier
 
         if classifier is None:
             from transformers import pipeline
 
-        classifier = pipeline(
-            "image-classification",
-             model="microsoft/resnet-50"
+            classifier = pipeline(
+                "image-classification",
+                model="microsoft/resnet-50"
             )
-            
 
-        # Predict
-        result = classifier(image) 
-        import gc
+        try:
+            result = classifier(image)
+
+        except Exception as e:
+            return f"Prediction Error: {str(e)}"
+
         gc.collect()
 
-        # Top 3 predictions
         for item in result[:1]:
 
             label = item["label"]
@@ -106,23 +82,19 @@ def home():
                 2
             )
 
-            predictions.append(
-                {
-                    "label": label,
-                    "score": score
-                }
-            )
+            predictions.append({
+                "label": label,
+                "score": score
+            })
 
-        # Top prediction
-        top_food = predictions[0]["label"]
+        if predictions:
+            top_food = predictions[0]["label"]
+        else:
+            top_food = "Unknown"
 
-        # Save history
         history.insert(0, top_food)
-
-        # Keep only last 5
         history[:] = history[:5]
 
-        # Food details
         food_data = food_info.get(
             top_food,
             {
@@ -131,7 +103,6 @@ def home():
             }
         )
 
-        # Image path
         image_path = file.filename
 
     return render_template(
