@@ -1,5 +1,12 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from flask import Flask, render_template, request, send_from_directory
 from transformers import pipeline
+
+classifier = pipeline(
+    "image-classification",
+    model="nateraw/food"
+)
 from PIL import Image
 import os
 
