@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>AI Food Classifier</title>
+
+    <style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background: linear-gradient(to right, #ece9e6, #ffffff);
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            min-height: 100vh;
+
+            margin: 0;
+        }
+
+        .container {
+
+            background: white;
+
+            padding: 40px;
+
+            border-radius: 20px;
+
+            width: 500px;
+
+            text-align: center;
+
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+
+            color: #222;
+
+            margin-bottom: 30px;
+
+            font-size: 42px;
+        }
+
+        input[type="file"] {
+
+            margin: 20px 0;
+        }
+
+        button {
+
+            background: #00a651;
+
+            color: white;
+
+            border: none;
+
+            padding: 15px 35px;
+
+            font-size: 18px;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+        button:hover {
+
+            background: #008f45;
+
+            transform: scale(1.05);
+        }
+
+        img {
+
+            margin-top: 30px;
+
+            width: 320px;
+
+            border-radius: 15px;
+
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .result {
+
+            margin-top: 30px;
+        }
+
+        .prediction-item {
+
+            background: #f5f5f5;
+
+            padding: 12px;
+
+            margin: 12px 0;
+
+            border-radius: 10px;
+
+            font-size: 24px;
+
+            font-weight: bold;
+        }
+
+        .food-info {
+
+            margin-top: 30px;
+
+            background: #f0fff4;
+
+            padding: 20px;
+
+            border-radius: 15px;
+        }
+
+        .food-info h3 {
+
+            margin: 10px 0;
+        }
+       .spinner {
+
+    display: none;
+
+    margin: 20px auto;
+
+    border: 8px solid #f3f3f3;
+
+    border-top: 8px solid #00a651;
+
+    border-radius: 50%;
+
+    width: 60px;
+
+    height: 60px;
+
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+
+    display: none;
+
+    margin-top: 15px;
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    color: #333;
+}
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>🍔 AI Food Classifier</h1>
+
+        <form
+    id="upload-form"
+    method="POST"
+    enctype="multipart/form-data"
+>
+
+            <input type="file" name="image" required>
+
+            <br><br>
+
+            <button type="submit">
+                Predict Food
+            </button>
+
+        </form>
+        <div class="spinner" id="spinner"></div>
+
+<div class="loading-text" id="loading-text">
+
+    Analyzing Food Image...
+
+</div>
+
+        {% if image_path %}
+             <img src="/uploads/{{ image_path }}">
+                   {% endif %}
+
+        {% if predictions %}
+
+            <div class="result">
+
+                <h2>Top Predictions</h2>
+
+                {% for item in predictions %}
+
+                    <div class="prediction-item">
+
+                        {{ item.label }} - {{ item.score }}%
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+        {% if food_data %}
+
+            <div class="food-info">
+
+                <h2>Food Information</h2>
+
+                <h3>🔥 Calories: {{ food_data.calories }}</h3>
+
+                <h3>🍽 Type: {{ food_data.type }}</h3>
+
+            </div>
+
+        {% endif %}
+       {% if history %}
+
+    <div class="food-info">
+
+        <h2>🕘 Recent Predictions</h2>
+
+        {% for item in history %}
+
+            <h3>{{ item }}</h3>
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}
+
+    </div>
+<script>
+
+    const form = document.getElementById("upload-form");
+
+    form.addEventListener("submit", function() {
+
+        document.getElementById("spinner").style.display = "block";
+
+        document.getElementById("loading-text").style.display = "block";
+    });
+
+</script>
+</body>
+
+</html>
