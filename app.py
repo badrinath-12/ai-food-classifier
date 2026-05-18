@@ -1,3 +1,4 @@
+os.environ["OMP_NUM_THREADS"] = "1"
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
@@ -84,16 +85,19 @@ def home():
         if classifier is None:
             from transformers import pipeline
 
-            classifier = pipeline(
-                "image-classification",
-                model="nateraw/food"
+        classifier = pipeline(
+            "image-classification",
+             model="microsoft/resnet-50"
             )
+            
 
         # Predict
-        result = classifier(image)
+        result = classifier(image) 
+        import gc
+        gc.collect()
 
         # Top 3 predictions
-        for item in result[:3]:
+        for item in result[:1]:
 
             label = item["label"]
 
