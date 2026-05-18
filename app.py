@@ -3,25 +3,18 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from flask import Flask, render_template, request, send_from_directory
 from transformers import pipeline
 
-classifier = pipeline(
-    "image-classification",
-    model="nateraw/food"
-)
 from PIL import Image
 import os
 
 app = Flask(__name__)
+classifier = None
 
 # Upload folder
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# AI model
-classifier = pipeline(
-    "image-classification",
-    model="nateraw/food"
-)
+
 
 # Food information
 food_info = {
@@ -87,10 +80,22 @@ def home():
         file.save(filepath)
 
         # Open image
-        image = Image.open(filepath)
+        image = Image.open(filepath) 
+
+        # Lazy load model
+        global classifier
+
+        if classifier is None:
+             classifier = pipeline(
+                  "image-classification",
+                  model="nateraw/food"
+            )
 
         # Predict
         result = classifier(image)
+       
+\
+
 
         # Top 3 predictions
         for item in result[:3]:
